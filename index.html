@@ -1,0 +1,590 @@
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta property="og:title" content="Pembuat Struk">
+<meta property="og:description" content="Struk adalah bukti pembayaran atau transaksi yang biasanya diberikan kepada pelanggan setelah melakukan pembayaran">
+<meta property="og:image" content="https://files.catbox.moe/kjguxl.jpg">
+<meta property="og:url" content="https://struk.zymzz.my.id">
+<meta property="og:type" content="website">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: 'Roboto Mono', monospace;
+      background-color: #000000;
+      color: #00dfff;
+    }
+    /* Custom scrollbar for better UX */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #111111;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: #00dfff;
+      border-radius: 10px;
+      border: 2px solid #111111;
+    }
+    /* Background logo container */
+    #receiptResult {
+      position: relative;
+      overflow: hidden;
+    }
+    #receiptResult img.bg-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+      opacity: 0.07;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      user-select: none;
+      filter: grayscale(100%) brightness(150%);
+      z-index: 0;
+    }
+    #receiptResult > * {
+      position: relative;
+      z-index: 1;
+    }
+    /* Popup overlay */
+    #popupOverlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    #popupBox {
+      background-color: #111111;
+      border: 2px solid #00dfff;
+      border-radius: 0.5rem;
+      padding: 1.5rem 2rem;
+      max-width: 320px;
+      text-align: center;
+      color: #00dfff;
+      box-shadow: 0 0 15px #00dfff;
+    }
+    #popupBox h3 {
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    #popupBox p {
+      font-size: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    #popupBox button {
+      background-color: #00dfff;
+      color: #000000;
+      font-weight: 700;
+      padding: 0.5rem 1.5rem;
+      border-radius: 0.375rem;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+    #popupBox button:hover {
+      background-color: #00b8cc;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+  <header class="w-full max-w-xl mb-6">
+    <h1 class="text-3xl font-bold text-center mb-2 tracking-wide">Pembuat Struk Digital</h1>
+    <p class="text-center text-sm text-cyan-300">Buat dan unduh struk digital dengan mudah dan cepat</p>
+  </header>
+
+  <main class="w-full max-w-xl bg-black border border-cyan-400 rounded-lg p-6 shadow-lg">
+    <form id="receiptForm" class="space-y-6" autocomplete="off">
+      <div>
+        <label for="storeName" class="block mb-1 text-cyan-300 font-semibold">Nama Toko</label>
+        <input
+          type="text"
+          id="storeName"
+          name="storeName"
+          placeholder="Contoh: Toko Zymzz Store"
+          class="w-full rounded border border-cyan-400 bg-black text-cyan-300 placeholder-cyan-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          required
+        />
+      </div>
+
+      <div>
+        <label for="storeAddress" class="block mb-1 text-cyan-300 font-semibold">Alamat Toko</label>
+        <input
+          type="text"
+          id="storeAddress"
+          name="storeAddress"
+          placeholder="Jl. Merdeka No. 123, Jakarta"
+          class="w-full rounded border border-cyan-400 bg-black text-cyan-300 placeholder-cyan-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          required
+        />
+      </div>
+
+      <div>
+        <label for="date" class="block mb-1 text-cyan-300 font-semibold">Tanggal & Waktu</label>
+        <input
+          type="datetime-local"
+          id="date"
+          name="date"
+          class="w-full rounded border border-cyan-400 bg-black text-cyan-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          required
+        />
+      </div>
+
+      <div>
+        <label class="block mb-1 text-cyan-300 font-semibold">Daftar Barang</label>
+        <div id="itemsContainer" class="space-y-3 max-h-64 overflow-y-auto border border-cyan-400 rounded p-3 bg-black">
+          <div class="flex space-x-2 items-center">
+            <input
+              type="text"
+              name="itemName[]"
+              placeholder="Nama Barang"
+              class="flex-1 rounded border border-cyan-400 bg-black text-cyan-300 placeholder-cyan-600 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              required
+            />
+            <input
+              type="number"
+              name="itemQty[]"
+              placeholder="Qty"
+              min="1"
+              class="w-16 rounded border border-cyan-400 bg-black text-cyan-300 placeholder-cyan-600 px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              required
+            />
+            <input
+              type="number"
+              name="itemPrice[]"
+              placeholder="Harga (Rp)"
+              min="0"
+              class="w-28 rounded border border-cyan-400 bg-black text-cyan-300 placeholder-cyan-600 px-2 py-1 text-right focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              required
+            />
+            <button
+              type="button"
+              aria-label="Hapus barang"
+              class="text-red-500 hover:text-red-600 transition"
+              onclick="removeItem(this)"
+            >
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </div>
+        <button
+          type="button"
+          id="addItemBtn"
+          class="mt-2 text-cyan-400 hover:text-cyan-600 font-semibold flex items-center space-x-2"
+        >
+          <i class="fas fa-plus-circle"></i><span>Tambah Barang</span>
+        </button>
+      </div>
+
+      <div>
+        <label for="payment" class="block mb-1 text-cyan-300 font-semibold">Pembayaran (Rp)</label>
+        <input
+          type="number"
+          id="payment"
+          name="payment"
+          placeholder="Jumlah uang yang dibayarkan"
+          min="0"
+          class="w-full rounded border border-cyan-400 bg-black text-cyan-300 placeholder-cyan-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          required
+        />
+      </div>
+
+      <div class="flex justify-center">
+        <button
+          type="submit"
+          class="bg-cyan-400 hover:bg-cyan-500 text-black font-bold py-2 px-6 rounded transition"
+        >
+          Buat Struk
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <section
+    id="receiptResultSection"
+    class="w-full max-w-xl mt-10 hidden"
+    aria-live="polite"
+  >
+    <h2 class="text-2xl font-bold mb-4 text-center text-cyan-400">Hasil Struk</h2>
+    <div
+      id="receiptResult"
+      class="bg-black border border-cyan-400 rounded-lg p-6 font-mono text-cyan-300 max-w-xs mx-auto shadow-lg"
+      style="width: 320px;"
+      aria-label="Hasil struk digital"
+    >
+      <!-- Struk akan muncul di sini -->
+    </div>
+    <div class="flex justify-center mt-4">
+      <button
+        id="downloadBtn"
+        class="bg-cyan-400 hover:bg-cyan-500 text-black font-bold py-2 px-6 rounded transition flex items-center space-x-2"
+      >
+        <i class="fas fa-download"></i><span>Unduh Struk</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Popup for payment less than total -->
+  <div id="popupOverlay" role="alertdialog" aria-modal="true" aria-labelledby="popupTitle" aria-describedby="popupDesc">
+    <div id="popupBox" tabindex="-1">
+      <h3 id="popupTitle">Pembayaran Kurang</h3>
+      <p id="popupDesc">Jumlah pembayaran kurang dari total belanja. Mohon periksa kembali.</p>
+      <button id="popupCloseBtn" type="button" aria-label="Tutup pesan peringatan">Tutup</button>
+    </div>
+  </div>
+
+  <footer class="mt-12 text-center text-cyan-400 text-sm select-none">
+    &copy; 2025 Zymzz All rights reserved
+  </footer>
+
+  <script>
+    // Add new item row
+    const addItemBtn = document.getElementById('addItemBtn');
+    const itemsContainer = document.getElementById('itemsContainer');
+
+    addItemBtn.addEventListener('click', () => {
+      const itemRow = document.createElement('div');
+      itemRow.className = 'flex space-x-2 items-center';
+      itemRow.innerHTML = `
+        <input
+          type="text"
+          name="itemName[]"
+          placeholder="Nama Barang"
+          class="flex-1 rounded border border-cyan-400 bg-black text-cyan-300 placeholder-cyan-600 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          required
+        />
+        <input
+          type="number"
+          name="itemQty[]"
+          placeholder="Qty"
+          min="1"
+          class="w-16 rounded border border-cyan-400 bg-black text-cyan-300 placeholder-cyan-600 px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          required
+        />
+        <input
+          type="number"
+          name="itemPrice[]"
+          placeholder="Harga (Rp)"
+          min="0"
+          class="w-28 rounded border border-cyan-400 bg-black text-cyan-300 placeholder-cyan-600 px-2 py-1 text-right focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          required
+        />
+        <button
+          type="button"
+          aria-label="Hapus barang"
+          class="text-red-500 hover:text-red-600 transition"
+          onclick="removeItem(this)"
+        >
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      `;
+      itemsContainer.appendChild(itemRow);
+      itemRow.querySelector('input').focus();
+    });
+
+    // Remove item row
+    function removeItem(button) {
+      const row = button.closest('div.flex');
+      if (itemsContainer.children.length > 1) {
+        row.remove();
+      }
+    }
+
+    // Format number to Indonesian Rupiah currency format
+    function formatRupiah(number) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+      }).format(number);
+    }
+
+    // Generate receipt HTML string with background logo image
+    function generateReceipt(data) {
+      const { storeName, storeAddress, date, items, payment } = data;
+
+      // Calculate totals
+      let total = 0;
+      items.forEach((item) => {
+        total += item.qty * item.price;
+      });
+      const change = payment - total;
+
+      // Format date to Indonesian style: dd/mm/yyyy HH:mm
+      const d = new Date(date);
+      const dateStr = d.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+      const timeStr = d.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+      // Background logo image URL (placeholder with barcode style)
+      // Using https://placehold.co with barcode style and cyan color
+      const bgLogoUrl = 'https://placehold.co/180x180/000000/00dfff?text=Zymzz&font=roboto+mono&font-size=40&font-weight=700';
+
+      // Receipt header and store info
+      let receiptHTML = `
+        <img src="${bgLogoUrl}" alt="Logo barcode berwarna cyan transparan sebagai latar belakang struk digital" class="bg-logo" />
+        <div class="text-center mb-4">
+          <h3 class="font-bold text-lg">${storeName.toUpperCase()}</h3>
+          <p class="text-xs">${storeAddress}</p>
+          <p class="text-xs mt-1">Tanggal: ${dateStr} ${timeStr}</p>
+          <hr class="border-cyan-400 my-2" />
+        </div>
+      `;
+
+      // Items table header
+      receiptHTML += `
+        <div class="text-xs">
+          <div class="flex justify-between font-semibold border-b border-cyan-400 pb-1">
+            <div class="w-1/2">Nama Barang</div>
+            <div class="w-1/6 text-center">Qty</div>
+            <div class="w-1/3 text-right">Harga</div>
+          </div>
+      `;
+
+      // Items list
+      items.forEach((item) => {
+        const itemTotal = item.qty * item.price;
+        receiptHTML += `
+          <div class="flex justify-between border-b border-cyan-700 py-1">
+            <div class="w-1/2 truncate">${item.name}</div>
+            <div class="w-1/6 text-center">${item.qty}</div>
+            <div class="w-1/3 text-right">${formatRupiah(itemTotal)}</div>
+          </div>
+        `;
+      });
+
+      receiptHTML += `</div>`;
+
+      // Total, payment, change
+      receiptHTML += `
+        <div class="mt-3 text-xs">
+          <div class="flex justify-between font-semibold border-t border-cyan-400 pt-2">
+            <div>Total</div>
+            <div>${formatRupiah(total)}</div>
+          </div>
+          <div class="flex justify-between mt-1">
+            <div>Bayar</div>
+            <div>${formatRupiah(payment)}</div>
+          </div>
+          <div class="flex justify-between mt-1">
+            <div>Kembali</div>
+            <div>${formatRupiah(change >= 0 ? change : 0)}</div>
+          </div>
+        </div>
+      `;
+
+      // Footer message
+      receiptHTML += `
+        <div class="text-center text-xs mt-5">
+          <p>Terima kasih atas kunjungan Anda!</p>
+          <p class="mt-1">Struk ini adalah bukti pembayaran yang sah.</p>
+        </div>
+      `;
+
+      return receiptHTML;
+    }
+
+    // Popup elements
+    const popupOverlay = document.getElementById('popupOverlay');
+    const popupCloseBtn = document.getElementById('popupCloseBtn');
+
+    function showPopup() {
+      popupOverlay.style.display = 'flex';
+      popupCloseBtn.focus();
+      // Trap focus inside popup
+      document.addEventListener('keydown', trapFocus);
+    }
+
+    function hidePopup() {
+      popupOverlay.style.display = 'none';
+      receiptForm.payment.focus();
+      document.removeEventListener('keydown', trapFocus);
+    }
+
+    // Trap focus inside popup for accessibility
+    function trapFocus(e) {
+      const focusableElements = popupOverlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const firstEl = focusableElements[0];
+      const lastEl = focusableElements[focusableElements.length -1];
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+      if (e.key === 'Escape') {
+        hidePopup();
+      }
+    }
+
+    popupCloseBtn.addEventListener('click', hidePopup);
+    popupOverlay.addEventListener('click', (e) => {
+      if (e.target === popupOverlay) {
+        hidePopup();
+      }
+    });
+
+    // Handle form submit
+    const receiptForm = document.getElementById('receiptForm');
+    const receiptResultSection = document.getElementById('receiptResultSection');
+    const receiptResult = document.getElementById('receiptResult');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    receiptForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      // Collect form data
+      const storeName = receiptForm.storeName.value.trim();
+      const storeAddress = receiptForm.storeAddress.value.trim();
+      const date = receiptForm.date.value;
+      const payment = Number(receiptForm.payment.value);
+
+      // Collect items
+      const itemNames = [...receiptForm.querySelectorAll('input[name="itemName[]"]')].map(i => i.value.trim());
+      const itemQtys = [...receiptForm.querySelectorAll('input[name="itemQty[]"]')].map(i => Number(i.value));
+      const itemPrices = [...receiptForm.querySelectorAll('input[name="itemPrice[]"]')].map(i => Number(i.value));
+
+      // Validate items
+      let validItems = true;
+      for (let i = 0; i < itemNames.length; i++) {
+        if (!itemNames[i] || itemQtys[i] <= 0 || itemPrices[i] < 0) {
+          validItems = false;
+          break;
+        }
+      }
+      if (!validItems) {
+        alert('Mohon isi semua data barang dengan benar.');
+        return;
+      }
+
+      // Validate payment >= total
+      let total = 0;
+      for (let i = 0; i < itemNames.length; i++) {
+        total += itemQtys[i] * itemPrices[i];
+      }
+      if (payment < total) {
+        showPopup();
+        return;
+      }
+
+      // Prepare data object
+      const data = {
+        storeName,
+        storeAddress,
+        date,
+        payment,
+        items: itemNames.map((name, i) => ({
+          name,
+          qty: itemQtys[i],
+          price: itemPrices[i],
+        })),
+      };
+
+      // Generate receipt HTML
+      const receiptHTML = generateReceipt(data);
+      receiptResult.innerHTML = receiptHTML;
+      receiptResultSection.classList.remove('hidden');
+
+      // Scroll to result
+      receiptResultSection.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Download receipt as PNG using html2canvas
+    // Load html2canvas from CDN
+    function loadHtml2Canvas() {
+      return new Promise((resolve) => {
+        if (window.html2canvas) {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+        script.onload = () => resolve();
+        document.body.appendChild(script);
+      });
+    }
+
+    downloadBtn.addEventListener('click', async () => {
+      await loadHtml2Canvas();
+
+      // Clone receiptResult to remove focus outlines and scrollbars
+      const clone = receiptResult.cloneNode(true);
+      clone.style.width = '320px';
+      clone.style.backgroundColor = '#000000';
+      clone.style.color = '#00dfff';
+      clone.style.padding = '24px';
+      clone.style.border = '1px solid #00dfff';
+      clone.style.borderRadius = '0.5rem';
+      clone.style.fontFamily = "'Roboto Mono', monospace";
+      clone.style.fontSize = '12px';
+      clone.style.lineHeight = '1.3';
+      clone.style.whiteSpace = 'normal';
+      clone.style.position = 'relative';
+      clone.style.overflow = 'hidden';
+
+      // Create container for canvas rendering
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.top = '-9999px';
+      container.style.left = '-9999px';
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
+      try {
+        const canvas = await html2canvas(clone, {
+          backgroundColor: null,
+          scale: 3,
+          useCORS: true,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: clone.scrollWidth,
+          windowHeight: clone.scrollHeight,
+        });
+        const link = document.createElement('a');
+        link.download = `struk-${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (error) {
+        alert('Gagal mengunduh struk. Silakan coba lagi.');
+      } finally {
+        container.remove();
+      }
+    });
+
+    // Set default date & time to now
+    window.addEventListener('load', () => {
+      const now = new Date();
+      const localISOTime = now.toISOString().slice(0,16);
+      receiptForm.date.value = localISOTime;
+    });
+  </script>
+</body>
+  </html>
